@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Numerics;
 
 namespace Tic_tac_toe_V21
 {
@@ -13,217 +14,257 @@ namespace Tic_tac_toe_V21
     class Program
     {
 
-        static char[] pos = new char[9];
-        static bool playing = true;
-        static bool X = true;
-        static bool O = true;
-        static int end = 0;
-        static int flag = 0;
+        static char player = 'O';
+        static int input = 0;
+        static bool inputIsCorrect = true;
+
+        static int turns = 0;
+        static char[,] playBoard = new char[,]
+        {
+            {' ', ' ', ' '},
+            {' ', ' ', ' '},
+            {' ', ' ', ' '}
+        };
+
         static void Main(string[] args)
         {
 
-            // Display menu
-            DisplayMenu();
-        }
+            Console.WriteLine("\nMenu:");
+            Console.WriteLine("1. New game");
+            Console.WriteLine("2. About the author");
+            Console.WriteLine("3. Quit");
+            Console.WriteLine();
+            Console.Write("\nEnter your choice: ");
 
-        static void DisplayMenu()
-        {
-            
-            while (true)
+
+
+            int choiceMenu = int.Parse(Console.ReadLine());
+            MenuOption option = (MenuOption)choiceMenu;
+
+
+            switch (option)
             {
-                
-                Console.WriteLine("Menu:");
-                Console.WriteLine("1. New game");
-                Console.WriteLine("2. About the author");
-                Console.WriteLine("3. Quit");
-                Console.WriteLine();
-                Console.Write("Enter your choice: ");
-
-                int choiceMenu = int.Parse(Console.ReadLine());
-                MenuOption option = (MenuOption)choiceMenu;
-
-                switch (option)
-                {
-                    case MenuOption.NewGame:
-                        // New game
-                       
-                        Console.WriteLine("   |   |   ");
-                        Console.WriteLine("---+---+---");
-                        Console.WriteLine("   |   |   ");
-                        Console.WriteLine("---+---+---");
-                        Console.WriteLine("   |   |   ");
-
-                        do
-                        {
-
-                            try
-                            {
-
-                                if (X)
-                                {
-                                Again:
-                                    Console.WriteLine("\n");
-                                    Console.Write("X's move > ");
-                                    int choice = Convert.ToInt32(Console.ReadLine());
-
-                                    if (pos[choice - 1] != 'X' && pos[choice - 1] != 'O')
-                                    {
-                                        pos[choice - 1] = 'X';
-                                        Board();// calling the board Function
-                                        end += 1;
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("Illegal move! Try again.");
-                                        goto Again;
-                                    }
-                                    flag = CheckWin();// calling of check win
-                                }
-                                if (O)
-                                {
-                                Again:
-                                    Console.WriteLine("\n");
-                                    Console.Write("O's move > ");
-                                    int choice = Convert.ToInt32(Console.ReadLine());
-
-                                    if (pos[choice - 1] != 'X' && pos[choice - 1] != 'O')
-                                    {
-                                        pos[choice - 1] = 'O';
-                                        Board();// calling the board Function
-                                        end += 1;
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("Illegal move! Try again.");
-
-                                        goto Again;
-                                    }
-                                    flag = CheckWin();// calling of check win
-                                }
-                            }
-                            catch
-                            {
-                                Console.WriteLine("Illegal move! Try again.");
-
-                            }
-                            if (end == 9)
-                            {
-                                Console.WriteLine("\n");
-                                Console.WriteLine("Game Over");
-                                break;
-                            }
-
-                        } while (flag != 1 && flag != -1);
-                        // if flag value is 1 then someone has win or
-                        //means who played marked last time which has win
-                        if (flag == 1)
-                        {
-                            Console.WriteLine($"Player {X} has won");
-                        }
-                        else// if flag value is -1 the match will be draw and no one is winner
-                        {
-                            Console.WriteLine("Draw");
-                        }
-                        break;
-                        break;
-                    case MenuOption.AboutAuthor:
-                        // About the author
-                        string firstName = "Eric";
-                        string lastName = "Muganga";
-                        string studentNumber = "pzx114029";
-                        string email = "mugangaeric2020@gmail.com";
-                        Console.WriteLine($"The author of this program is {firstName} {lastName}" +
-                            $" \n Student Number: {studentNumber} " +
-                            $" \n Email: {email}");
-                        break;
-                    case MenuOption.Quit:
-                        // Quit
-                        Console.Write("Are you sure you want to quit? (Y/N) > ");
-                        string confirm = Console.ReadLine();
-                        if (confirm == "Y" || confirm == "y")
-                        {
-                            return;
-                        }
-                        break;
-                    default:
-                        Console.WriteLine("Invalid choice. Please try again.");
-                        break;
-                }
-
-                Console.WriteLine();
+                case MenuOption.NewGame:
+                    // New game
+                    NewGame();
+                    break;
+                case MenuOption.AboutAuthor:
+                    // About the author
+                    AboutTheAuthor();
+                    break;
+                case MenuOption.Quit:
+                    // Quit
+                    Quit();
+                    break;
+                default:
+                    Console.WriteLine("\nInvalid choice. Please try again.");
+                    break;
             }
 
+            Console.WriteLine();
+            
+        }
 
+
+        static void NewGame()
+        {
+            do
+            {
+                if (player == 'X')
+                {
+                    player = 'O';
+                    EnterXorO('X', input);
+                }
+                else if (player == 'O')
+                {
+                    player = 'X';
+                    EnterXorO('O', input);
+                }
+
+                Board();
+
+                CheckWinAndDraw();
+
+                #region
+                // Tests if the position on the board is taken
+                do
+                {
+                    Console.Write($"\nPlayer {player}'s move > ");
+                    try
+                    {
+                        input = Convert.ToInt32(Console.ReadLine());
+
+                    }
+                    catch
+                    {
+                        Console.WriteLine("\nIllegal move! Try again.");
+                    }
+
+                    if ((input == 1) && (playBoard[0, 0] == ' '))
+                    {
+                        inputIsCorrect = true;
+                    }
+                    else if ((input == 2) && (playBoard[0, 1] == ' '))
+                    {
+                        inputIsCorrect = true;
+                    }
+                    else if ((input == 3) && (playBoard[0, 2] == ' '))
+                    {
+                        inputIsCorrect = true;
+                    }
+                    else if ((input == 4) && (playBoard[1, 0] == ' '))
+                    {
+                        inputIsCorrect = true;
+                    }
+                    else if ((input == 5) && (playBoard[1, 1] == ' '))
+                    {
+                        inputIsCorrect = true;
+                    }
+                    else if ((input == 6) && (playBoard[1, 2] == ' '))
+                    {
+                        inputIsCorrect = true;
+                    }
+                    else if ((input == 7) && (playBoard[2, 0] == ' '))
+                    {
+                        inputIsCorrect = true;
+                    }
+                    else if ((input == 8) && (playBoard[2, 1] == ' '))
+                    {
+                        inputIsCorrect = true;
+                    }
+                    else if ((input == 9) && (playBoard[2, 2] == ' '))
+                    {
+                        inputIsCorrect = true;
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nIllegal move! Try again.");
+                        inputIsCorrect = false;
+
+                    }
+
+
+                } while (!inputIsCorrect);
+                #endregion
+
+            } while (true);
+        }
+        static void AboutTheAuthor()
+        {
+            string firstName = "Eric";
+            string lastName = "Muganga";
+            string studentNumber = "pzx114029";
+            string email = "mugangaeric2020@gmail.com";
+            Console.WriteLine($"The author of this program is {firstName} {lastName}" +
+                $" \n Student Number: {studentNumber} " +
+                $" \n Email: {email}");
+        }
+
+        static void Quit()
+        {
+            Console.Write("Are you sure you want to quit? (Y/N) > ");
+            string confirm = Console.ReadLine();
+            if (confirm == "Y" || confirm == "y")
+            {
+                return;
+            }
+           
         }
         // Board function which creats board
         static void Board()
         {
-            Console.WriteLine($" {pos[0]} | {pos[1]} | {pos[2]} ");
+            Console.Clear();
+            Console.WriteLine($" {playBoard[0, 0]} | {playBoard[0, 1]} | {playBoard[0, 2]} ");
             Console.WriteLine("---+---+---");
-            Console.WriteLine($" {pos[3]} | {pos[4]} | {pos[5]}  ");
+            Console.WriteLine($" {playBoard[1, 0]} | {playBoard[1, 1]} | {playBoard[1, 2]} ");
             Console.WriteLine("---+---+---");
-            Console.WriteLine($" {pos[6]} | {pos[7]} | {pos[8]}  ");
-
+            Console.WriteLine($" {playBoard[2, 0]} | {playBoard[2, 1]} | {playBoard[2, 2]} ");
+            turns++;
         }
 
-
-        static int CheckWin()
+        static void ResetBoard()
         {
-            #region Horzontal Winning Condtion
-            //Winning Condition For First Row
-            if (pos[0] == pos[1] && pos[1] == pos[2])
+            char[,] playBoardInitial = new char[,]
             {
-                return 1;
-            }
-            //Winning Condition For Second Row
-            else if (pos[3] == pos[4] && pos[4] == pos[5])
+        {' ', ' ', ' '},
+        {' ', ' ', ' '},
+        {' ', ' ', ' '}
+            };
+            playBoard = playBoardInitial;
+            Board();
+            turns = 0;
+        }
+
+        static void EnterXorO(char playerSign, int input)
+        {
+
+            switch (input)
             {
-                return 1;
+                case 1:
+                    playBoard[0, 0] = playerSign; break;
+                case 2:
+                    playBoard[0, 1] = playerSign; break;
+                case 3:
+                    playBoard[0, 2] = playerSign; break;
+                case 4:
+                    playBoard[1, 0] = playerSign; break;
+                case 5:
+                    playBoard[1, 1] = playerSign; break;
+                case 6:
+                    playBoard[1, 2] = playerSign; break;
+                case 7:
+                    playBoard[2, 0] = playerSign; break;
+                case 8:
+                    playBoard[2, 1] = playerSign; break;
+                case 9:
+                    playBoard[2, 2] = playerSign; break;
             }
-            //Winning Condition For Third Row
-            else if (pos[6] == pos[7] && pos[7] == pos[8])
+        }
+        static void CheckWinAndDraw()
+        {
+            #region
+            //// check winning condition
+            char[] playerChars = { 'X', 'O' };
+
+            foreach (char playerChar in playerChars)
             {
-                return 1;
+                if (((playBoard[0, 0] == playerChar) && (playBoard[0, 1] == playerChar) && (playBoard[0, 2] == playerChar))
+                  || ((playBoard[1, 0] == playerChar) && (playBoard[1, 1] == playerChar) && (playBoard[1, 2] == playerChar))
+                  || ((playBoard[2, 0] == playerChar) && (playBoard[2, 1] == playerChar) && (playBoard[2, 2] == playerChar))
+                  || ((playBoard[0, 0] == playerChar) && (playBoard[1, 0] == playerChar) && (playBoard[2, 0] == playerChar))
+                  || ((playBoard[0, 1] == playerChar) && (playBoard[1, 1] == playerChar) && (playBoard[2, 1] == playerChar))
+                  || ((playBoard[0, 2] == playerChar) && (playBoard[1, 2] == playerChar) && (playBoard[2, 2] == playerChar))
+                  || ((playBoard[0, 0] == playerChar) && (playBoard[1, 1] == playerChar) && (playBoard[2, 2] == playerChar))
+                  || ((playBoard[2, 0] == playerChar) && (playBoard[1, 1] == playerChar) && (playBoard[0, 2] == playerChar))
+                  )
+                {
+                    if (playerChar == 'X')
+                    {
+                        Console.WriteLine("\nX has won ");
+                    }
+                    else
+                    {
+                        Console.WriteLine("\nO has won ");
+                    }
+
+                    Console.WriteLine("Press Enter To reset the The game");
+                    Console.ReadKey();
+                    
+                    ResetBoard();
+                    break;
+                }
+                else if (turns == 10)
+                {
+                    Console.WriteLine("\nIt's a Draw");
+                    Console.WriteLine("Press Enter To reset the The game");
+                    Console.ReadKey();
+
+                    ResetBoard();
+                    break;
+                }
             }
+
             #endregion
-            #region vertical Winning Condtion
-            //Winning Condition For First Column
-            else if (pos[0] == pos[3] && pos[3] == pos[6])
-            {
-                return 1;
-            }
-            //Winning Condition For Second Column
-            else if (pos[1] == pos[4] && pos[4] == pos[7])
-            {
-                return 1;
-            }
-            //Winning Condition For Third Column
-            else if (pos[2] == pos[5] && pos[5] == pos[8])
-            {
-                return 1;
-            }
-            #endregion
-            #region Diagonal Winning Condition
-            else if (pos[0] == pos[4] && pos[4] == pos[8])
-            {
-                return 1;
-            }
-            else if (pos[2] == pos[4] && pos[4] == pos[6])
-            {
-                return 1;
-            }
-            #endregion
-            #region Checking For Draw
-            // If all the cells or values filled with X or O then any player has won the match
-            else if (pos[0] - 1 != '1' && pos[1] - 1 != '2' && pos[3] - 1 != '3' && pos[4] - 1 != '4' && pos[5] - 1 != '5' && pos[6] - 1 != '6' && pos[7] - 1 != '7' && pos[8] - 1 != '8' && pos[9] - 1 != '9')
-            {
-                return -1;
-            }
-            #endregion
-            else
-            {
-                return 0;
-            }
         }
     }
 }
